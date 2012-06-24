@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Drag Test</title>
+		<link href="styles.css" media="all" rel="stylesheet" type="text/css"/>
+		<script src="/common/jquery-1.7.2.js"></script>
+		<script src="drag.js"></script>
+		<script type="text/javascript">
+			$(function(){
+				$('#child').drag({
+					bound: true,
+					lock: "none",
+					onMove: function () {
+						$('#position').text( 'Top: ' + this.position().top + 'Left: ' + this.position().left );
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="parent">
+			<div id="child"></div>
+			<div id="position"></div>
+		</div>
+	</body>
+</html>
