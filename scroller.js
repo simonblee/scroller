@@ -1,17 +1,29 @@
 /**
- * Content Scroller.
- * 
+ * Content Scroller. Waps a content area in a scroller, allowing the 
+ * content to be scrolled and the scroll bar to be styled.
+ *
+ * Author: Simon Blee (The Gift Mansion) (simblee@gmail.com, simon@thegiftmansion.com.au)
+ * Date: See latest commit
  * Requires:
  *      - drag.js
- *      - jquery.mousewheel.js
- *      - jquery.mousehold.js
+ *      - jquery.mousewheel.js (from Remy Sharp)
+ *      - jquery.mousehold.js (from Brandon Aaron)
+ * Example: $("div").scroller({
+ *              showHandles: true,
+ *              
+ *          });
  */
 
 (function( $ ){
 
-    var Scroller = function( o ){ 
-        this.element = null;
+    var Scroller = function( o, element ){ 
+        this.element = element;
+        this.parent = null;
+        this.upBtn = null;
+        this.downBtn = null;
+        this.handle = null;
         this.options = {
+            minHandleHeight: 10,
             orientation: 'vertical',
             scrollDistance : 60,
             scrollUpDirection : 1,
@@ -19,16 +31,19 @@
             mouseholdTO : 50 //Mousehold timeout (ms)
         };
 
-        // Extend the input options
-        $.extend( this.options, o );
+        // Init the scroller
+        this.init( o );
     };    
     
     Scroller.prototype = {
 
         constructor: Scroller,
 
-        init : function(){           
+        init : function( o ){           
             var self = this;
+
+            // Extend the input options
+            $.extend( this.options, o );
 
             // Wrap the element and add scroller template
             this.element.wrap('<div class="scrollable" />');
@@ -45,117 +60,98 @@
                 '</div>'
             );
 
-            // Size the scroller
-            
+            // Create quick reference elements
+            this.parent = this.element.parent();
+            this.upBtn = this.parent.find(".scroller-up");
+            this.downBtn = this.parent.find(".scroller-down");
+            this.handle = this.parent.find(".scroller-handle");
 
             // Make the handle draggable
-            this.element.find('.scroll-handle').drag({
-
+            this.handle.draggable({
+                bound: true,
+                lock: 'horizontal',
+                onMove: function () {
+                    self.scroll();
+                }
             });
-        },
-        
-        _initScroller : function(){
-            //Refernece DOM objects accessed a lot
-            this.scrollPane = this.element.closest(".scroll-pane");
-            this.scrollContent = this.scrollPane.find(".scroll-content");
-            this.scrollContainer = this.scrollPane.closest(".tab-container");
-            this.scrollUp = this.scrollPane.find(".scroll-up");
-            this.scrollDown = this.scrollPane.find(".scroll-down");
-            this.sliderElem = this.element.find(".scroll-bar");
-            this.defaultContent = this.scrollContent.html();
-            
-            //change overflow to hidden now that slider handles the scrolling
-            this.scrollPane.css( "overflow", "hidden" );
-            
+
             //Adjust height of scroll-bar-wrap so handle is always visible
-            this.sizeScrollBar();
-            this._bindScrollEvents();
-            
-            //Create overlay
-            this._initOverlay();
+            this.sizeScrollerHandle();
+            this._bindEvents();
         },
 
-        sizeScrollBar : function(){
-            var hide,
-                handleHeight,
-                minHandleHeight = 13;
+        // Calculate the height of the scroller handle based on the amount
+        // height difference between the scroller container and the content 
+        // div.
+        sizeScrollerHandle: function () {
+            var handleHeight;
 
-            //CSS must have display:block so we can measure the height
-            if(this.scrollContainer.css('display') == 'none'){
-                hide = true;
-                this.scrollContainer.removeClass('tabhidden').addClass('tabshown');
-            }
-            if(this.scrollContent.height() < this.scrollPane.height()){
+            // Calculate the handle height
+            if( this.element.height() < this.parent.height() ){
                 handleHeight = 0;
-            }
-            else{
-                handleHeight = this.scrollPane.height() * (this.scrollPane.height()/this.scrollContent.height())
-                                - (2 * this.element.find('.scroll-up').height());
+            } else{
+                handleHeight = this.parent.height() * ( this.parent.height() / this.element.height() )
+                                - ( 2 * this.upBtn.outerHeight() );
                 //Check the handle is not too small
-                if(handleHeight < minHandleHeight){
-                    handleHeight = minHandleHeight;
+                if( handleHeight < this.minHandleHeight ){
+                    handleHeight = this.minHandleHeight;
                 }
             }
-            this.element.find( ".ui-slider-handle" ).height(handleHeight);
 
-            //Re-size the wrap to ensure the handle is always visible
-            this.element.find(".scroll-bar-wrap").height(
-                this.scrollPane.height() - handleHeight - (2 * this.element.find('.scroll-up').height())
-            ).css('padding-top', handleHeight);
-
-            //Reflow content
-            this._reflowContent();
-
-            //Reset tab display to hidden
-            if(hide){
-                this.scrollContainer.removeClass('tabshown').addClass('tabhidden');
-            }
+            //Set the handle height and wrap height
+            this.handle.height( 
+                handleHeight 
+            ).parent().height(
+                this.parent.height() - ( 2 * this.upBtn.outerHeight() )
+            );
         },
 
-        _reflowContent : function(){
-            var scrVal = this.sliderElem.slider( "option", "value" ),
-                margin = this.scrollContent.css("margin-top");
+        _reflowContent : function () {
+            var newVal,
+                scrVal = this.sliderElem.slider( "option", "value" ),
+                margin = this.scrollContent.css( "margin-top" );
 
             // Get the margin as an integer
-            margin = parseInt(margin.replace("px",""));
+            margin = parseInt( margin.replace("px","") );
 
             // If visible space below content, set to current value to trigger a content reflow
-            if(this.scrollPane.height() > (this.scrollContent.height() - margin)){
+            if( this.parent.height() > ( this.element.height() - margin ) ){
                 this.sliderElem.slider( "option", "value" , scrVal);
             } else { //If content added/removed, adjust slider value to match new content size
-                var newVal = Math.round(
-                            100 * (1 - margin / (this.scrollPane.height() - (this.scrollContent.height() )))
+                newVal = Math.round(
+                            100 * ( 1 - margin / ( this.parent.height() - ( this.element.height() ) ) )
                 );
                 this.sliderElem.slider( "option", "value", newVal );
             }            
         },
 
-        _bindScrollEvents : function(){
+        _bindEvents : function () {
+            var self = this;
 
             //Move the scroller with the mousewheel using the event helper
-            this.scrollPane.bind('mousewheel.scroller', {self: this}, function(event, delta){
-                event.data.self._scroll(delta);
+            this.element.on('mousewheel.scroller', function ( event, delta ) {
+                self._scrollHandle( delta );
+
                 //Stop the window from scrolling
                 event.preventDefault();
             });
+
             //Move the scroller with up/down buttons
-            this.scrollUp.bind('mousedown.scroller mousehold.scroller', {self: this}, function(event){
-                event.data.self._scroll(event.data.self.options.scrollUpDirection)
+            this.upBtn.on('mousedown.scroller mousehold.scroller', function ( event ) {
+                self._scrollHandle( -1 );
             });
-            this.scrollDown.bind('mousedown.scroller mousehold.scroller', {self: this}, function(event){
-                event.data.self._scroll(event.data.self.options.scrollDownDirection)
-            });
-            //Mousehold on the buttons
-            var self = this;
-            this.scrollUp.mousehold(this.options.mouseholdTO, function(i){  
-                self._scroll(self.options.scrollUpDirection);
-            });
-            this.scrollDown.mousehold(this.options.mouseholdTO, function(i){  
-                self._scroll(self.options.scrollDownDirection);
+            this.downBtn.on('mousedown.scroller mousehold.scroller', function ( event ) {
+                self._scrollHandle( 1 );
             });
         },
 
-        _scroll : function(direction){
+        // Move the scroller handle (events will need to call this)
+        _scrollHandle : function( direction ){
+            // Get the scroll weight
+
+            // Move the scroll handle
+
+
             // Set the pixel scroll distance
             if(this.element.find( ".ui-slider-handle" ).height() != 0){
                 this.sliderElem.slider( "option", "value" , this.sliderElem.slider( "option", "value" ) +
@@ -164,19 +160,8 @@
             }
         },
 
-        _getScrollWeight : function(scrollDelta){
-            return - 100 * scrollDelta / ( this.scrollPane.height() - this.scrollContent.height() );
-        },
-                
-        putDefContent : function(){
-            var items = this.scrollContent.find('.sci').length;
-            if( items == 0 ){
-                this.scrollContent.append(this.defaultContent);
-            }
-        },
-
-        // 
-        _moveContent : function( event, ui ){
+        // Scroll the content
+        _scrollContent : function( event, ui ){
             if ( this.scrollContent.height() > this.scrollPane.height() ) {
                     var newMargin = Math.round(
                             (100 - ui.value) / 100 * ( this.scrollPane.height() - this.scrollContent.height() )
@@ -187,6 +172,17 @@
                     this.scrollContent.css( "margin-top", newMargin );
             } else {
                     this.scrollContent.css( "margin-top", 0 );
+            }
+        },
+
+        _getScrollWeight : function( scrollDelta ){
+            return - 100 * scrollDelta / ( this.scrollPane.height() - this.scrollContent.height() );
+        },
+                
+        putDefContent : function(){
+            var items = this.scrollContent.find('.sci').length;
+            if( items == 0 ){
+                this.scrollContent.append(this.defaultContent);
             }
         }
     };
@@ -202,12 +198,8 @@
             data = $(this).data( 'scroller' );            
             if( !data ){
                 data = $(this).data( 'scroller', { 
-                    o : new Scroller( method ) 
+                    o : new Scroller( method, $(this) ) 
                 }).data( 'scroller' );
-
-                //Set the jQuery object
-                data.o.element = $(this);
-                data.o.init();
             }
 
             // Call method if it exists

@@ -4,11 +4,11 @@
 		<title>Drag Test</title>
 		<link href="styles.css" media="all" rel="stylesheet" type="text/css"/>
 		<script src="/common/jquery-1.7.2.js"></script>
-		<script src="drag.js"></script>
+		<script src="draggable.js"></script>
 		<script src="scroller.js"></script>
 		<script type="text/javascript">
 			$(function(){
-				$('#child').drag({
+				$('#child').draggable({
 					bound: true,
 					lock: "horizontal",
 					onMove: function () {

@@ -13,6 +13,11 @@
 }
 
 /* Drag test */
+.scrollable{
+	height:400px;
+	overflow:hidden;
+}
+
 .scroll-content, .scroller{
 	float:left;
 }
@@ -28,22 +33,20 @@
 	cursor: pointer;
 }
 
-.scroll-up{
+.scroller-up{
 
 }
 
-.scroll-down{
+.scroller-down{
 
 }
 
 .scroller-handle-wrap{
 	width: 10px;
 	height: auto;
-	padding: 2px;
 }
 
-.scroll-handle{
+.scroller-handle{
 	background-color: black;
-	width:auto;
-	height: 20px;
+	width: 100%;
 }

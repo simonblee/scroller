@@ -7,8 +7,8 @@
 
 (function( $ ){
 
-	var Drag = function( o ){
-		this.element = null;
+	var Draggable = function( o, element ){
+		this.element = element;
 		this.move = false;
 		this.prevX = null;
 		this.prevY = null;
@@ -30,11 +30,14 @@
 		
 		// Extend the options
 		$.extend( this.options, o );
+
+		// Init the plugin
+		this.init();
 	};    
 	
-	Drag.prototype = {
+	Draggable.prototype = {
 
-		constructor: Drag,
+		constructor: Draggable,
 
 		init : function () {
 			// Set to absolute positioning and parent to relative
@@ -70,7 +73,7 @@
 
 		// Disable by removing events
 		disable: function () {
-			this.element.off( 'mousemove.drag', 'mousedown.drag', 'mouseup.drag' );
+			this.element.off( 'mousemove.draggable', 'mousedown.draggable', 'mouseup.draggable' );
 		},
 
 		// Re-bind the events to enable
@@ -82,7 +85,7 @@
 			var self = this;
 
 			// On mouse down, START moving the element
-			this.element.on( 'mousedown.drag', function ( event ) {
+			this.element.on( 'mousedown.draggable', function ( event ) {
 				// Set movable
 				self.move = true;
 
@@ -95,15 +98,15 @@
 				self.prevY = event.pageY;
 
 				// Bind and trigger the mouse move event to calculate previous position
-				// Use document as mouse will most likely move out of element during drag
-				$(document).on( 'mousemove.drag', function ( event ) {
+				// Use document as mouse will most likely move out of element during draggable
+				$(document).on( 'mousemove.draggable', function ( event ) {
 					if( self.move ){
-						self.moveElement( event );
+						self.onMouseMove( event );
 					}
 				});
 
 				// On mouse up, STOP moving the element
-				$(document).one( 'mouseup.drag', function () {
+				$(document).one( 'mouseup.draggable', function () {
 					self.move = false;
 				});
 
@@ -113,7 +116,7 @@
 		},
 
 		// Move the element by the difference in mouse move from last move
-		moveElement: function ( event ) {
+		onMouseMove: function ( event ) {
 			var pos = this.element.position(),
 				difX = event.pageX - this.prevX,
 				difY = event.pageY - this.prevY;	
@@ -121,11 +124,11 @@
 			// Move the element the difference of the previos and current mouse position
 			if( this.prevX !== null ){
 				if( this.moveVertical ){
-					this.moveElementAlongDim( 'top', pos.top + difY, event );
+					this.moveElement( 'top', pos.top + difY, event );
 				}
 
 				if( this.moveHorizontal ){
-					this.moveElementAlongDim( 'left', pos.left + difX, event );
+					this.moveElement( 'left', pos.left + difX, event );
 				}
 			}
 
@@ -137,9 +140,13 @@
 			this.options.onMove.call( this.element );
 		},
 
-		// Move an element along a particular dimension
-		moveElementAlongDim: function ( dim, val, event ) {
-			var canMove = this.canMove( dim, val, event );
+		// Move an element along a particular dimension. This method can be called
+		// externally to move the draggable element. When calling externally, leave
+		// event 'undefined'
+		moveElement: function ( dim, val, event ) {
+			if( typeof event !== 'undefined' ){
+				var canMove = this.canMove( dim, val, event );
+			}
 
 			//Set position depending on bounds
 			if( canMove === true ) {
@@ -151,8 +158,8 @@
 			}
 		},
 
-		// Returns true if 'val' is in the bounds of the given dimension
-		// 'dim'. If out of bounds, return '-1' for top or left bound and 
+		// Returns true if 'val' is in the bounds of the given dimension 'dim'
+		// (left or top). If out of bounds, return '-1' for top or left bound and 
 		// returns '1' for bottom and right bound. If the mouse is not in
 		// bounds for the given dimension.
 
@@ -173,34 +180,34 @@
 					}
 
 					// Check if the element is already bound
-					if( this.atBound[dim] ){
+					if( this.atBound[ dim ] ){
 						return false;
 					}
-					this.atBound[dim] = true;
+					this.atBound[ dim ] = true;
 					return ret;
 				}
 			} 
 
 			// If here can move, even if element is bounded
-			this.atBound[dim] = false;
+			this.atBound[ dim ] = false;
 			return true;
 		},
 
 		// Returns true if the mouse is in the bound of both the parent
 		// and the click position of the element. This causes the element 
 		// to not move if the mouse is outside the parent AND if the mouse 
-		// is outside it's original click position. The click coordinates
+		// is outside its original click position. The click coordinates
 		// add an offset to the parent element, acting like a padding equal
-		// to the x and y position of the click inside the element.
+		// to the x and y position of the click inside the element. This means
+		// the element can be moved only when the mouse gets back to the same 
+		// position it was clicked on, not before
 		mouseInClickBounds: function ( dim, event ) {
 			var os = this.element.parent().offset();
-			if( dim === 'top' ){
-				return ( os.top + this.clickY ) <= event.pageY 
-					&& event.pageY <= ( os.top + this.element.parent().outerHeight() - ( this.element.height() - this.clickY ) );
-			} else {
-				return ( os.left + this.clickX ) <= event.pageX 
-					&& event.pageX <= ( os.left + this.element.parent().outerWidth() - ( this.element.width() - this.clickX ) );
-			}
+				clickDim = dim === 'top' ? this.clickY : this.clickX;
+				eventDim = dim === 'top' ? event.pageY : event.pageX;
+
+			return ( os[dim] + clickDim ) <= eventDim 
+					&& eventDim <= ( os[dim] + this.getMaxBounds( dim ) + clickDim );
 		},
 
 		// Calculate the max bounds of the element
@@ -219,22 +226,18 @@
 	};
 	
 	
-	$.fn.drag = function( method ) {
+	$.fn.draggable = function( method ) {
 		var ret,
 			data,
 			args = arguments;
 
 		this.each(function(){
 			// Grab the object or create if not exist
-			data = $(this).data( 'drag' );            
+			data = $(this).data( 'draggable' );            
 			if( !data ){
-				data = $(this).data( 'drag', { 
-					o : new Drag( method ) 
-				}).data( 'drag' );
-
-				//Set the jQuery object
-				data.o.element = $(this);
-				data.o.init();
+				data = $(this).data( 'draggable', { 
+					o : new Draggable( method, $(this) ) 
+				}).data( 'draggable' );
 			}
 
 			// Call method if it exists
