@@ -22,13 +22,15 @@
         this.upBtn = null;
         this.downBtn = null;
         this.handle = null;
+        this.direction = null;
         this.options = {
             minHandleHeight: 10,
             orientation: 'vertical',
-            scrollDistance : 60,
-            scrollUpDirection : 1,
-            scrollDownDirection : -1,
-            mouseholdTO : 50 //Mousehold timeout (ms)
+            scrollDistance: 60, // Distance in pixels of each scroll
+            scrollUpDirection: 1,
+            scrollDownDirection: -1,
+            mouseholdDeadTime: 1000, // Time to continue holding
+            mouseholdTO: 50 // Mousehold timeout (ms)
         };
 
         // Init the scroller
@@ -47,17 +49,22 @@
 
             // Wrap the element and add scroller template
             this.element.wrap('<div class="scrollable" />');
-            this.element.addClass('scroll-content');
+            this.element.addClass('scroll-content').css({
+                'position': 'relative',
+                'top': '0px'
+            });
 
             //Add in the required elements
             this.element.parent().append(
                 '<div class="scroller">'+
-                    '<div class="scroller-up scroller-up-down"></div>'+
+                    '<div class="scroller-up scroller-up-down" direction="-1"></div>'+
                     '<div class="scroller-handle-wrap">'+
                         '<div class="scroller-handle"></div>'+
                     '</div>'+
-                    '<div class="scroller-down scroller-up-down"></div>'+
+                    '<div class="scroller-down scroller-up-down" direction="1"></div>'+
                 '</div>'
+            ).css(
+                'position', 'relative'
             );
 
             // Create quick reference elements
@@ -70,8 +77,10 @@
             this.handle.draggable({
                 bound: true,
                 lock: 'horizontal',
-                onMove: function () {
-                    self.scroll();
+                onMove: function ( direction ) {
+                    if ( self.element.height() > self.parent.height() ) {
+                        self._scrollContent();
+                    }
                 }
             });
 
@@ -107,82 +116,63 @@
         },
 
         _reflowContent : function () {
-            var newVal,
-                scrVal = this.sliderElem.slider( "option", "value" ),
-                margin = this.scrollContent.css( "margin-top" );
-
-            // Get the margin as an integer
-            margin = parseInt( margin.replace("px","") );
-
-            // If visible space below content, set to current value to trigger a content reflow
-            if( this.parent.height() > ( this.element.height() - margin ) ){
-                this.sliderElem.slider( "option", "value" , scrVal);
-            } else { //If content added/removed, adjust slider value to match new content size
-                newVal = Math.round(
-                            100 * ( 1 - margin / ( this.parent.height() - ( this.element.height() ) ) )
-                );
-                this.sliderElem.slider( "option", "value", newVal );
-            }            
+         
         },
 
+        // Bind all the events to move the scroller
         _bindEvents : function () {
             var self = this;
 
-            //Move the scroller with the mousewheel using the event helper
-            this.element.on('mousewheel.scroller', function ( event, delta ) {
-                self._scrollHandle( delta );
-
-                //Stop the window from scrolling
+            // Move the scroller with the mousewheel using the event helper
+            this.parent.on('mousewheel.scroller', function ( event, delta, deltaX, deltaY ) {
+                delta = deltaY ? deltaY : deltaX;
+                self._scrollHandle( -1 * delta );
                 event.preventDefault();
             });
 
-            //Move the scroller with up/down buttons
-            this.upBtn.on('mousedown.scroller mousehold.scroller', function ( event ) {
-                self._scrollHandle( -1 );
-            });
-            this.downBtn.on('mousedown.scroller mousehold.scroller', function ( event ) {
-                self._scrollHandle( 1 );
+            // Adjust the default moushold timeout and deadtime TODO: create new mousehold plugin
+
+
+            // Move the scroller with up/down clicks and mouseholds
+            this.parent.find('.scroller-up-down').on('mousedown.scroller mousehold.scroller', function ( event ) {
+                self._scrollHandle( parseInt( $(this).attr('direction') ) );
             });
         },
 
         // Move the scroller handle (events will need to call this)
         _scrollHandle : function( direction ){
-            // Get the scroll weight
+            var val,
+                weight,
+                dim = this.options.orientation === 'vertical' ? 'top' : 'left';
+
+            // Calculate the handle scroll value (must correspond to a scroll of
+            // this.options.scrollDistance pixels in the content).
+            weight = this.options.scrollDistance * ( this.handle.parent().height() - this.handle.height() ) / 
+                ( this.element.height() - this.parent.height() )
+            val = this.handle.position()[ dim ] + direction * weight;
+
+            //Save the direction for the content scroll
+            this.direction = direction;
 
             // Move the scroll handle
-
-
-            // Set the pixel scroll distance
-            if(this.element.find( ".ui-slider-handle" ).height() != 0){
-                this.sliderElem.slider( "option", "value" , this.sliderElem.slider( "option", "value" ) +
-                    direction * this._getScrollWeight(this.options.scrollDistance)
-                );
-            }
+            this.handle.draggable( "moveElement", dim, val );
         },
 
         // Scroll the content
-        _scrollContent : function( event, ui ){
-            if ( this.scrollContent.height() > this.scrollPane.height() ) {
-                    var newMargin = Math.round(
-                            (100 - ui.value) / 100 * ( this.scrollPane.height() - this.scrollContent.height() )
-                    ) + "px" ;
-                    //Stop the previous animation(s) to speed things up
-                    this.scrollContent.stop(true, false);
-                    //Start the next animation
-                    this.scrollContent.css( "margin-top", newMargin );
-            } else {
-                    this.scrollContent.css( "margin-top", 0 );
-            }
-        },
+        _scrollContent : function( val ){
+            var dim = this.options.orientation === 'vertical' ? 'top' : 'left';
 
-        _getScrollWeight : function( scrollDelta ){
-            return - 100 * scrollDelta / ( this.scrollPane.height() - this.scrollContent.height() );
-        },
-                
-        putDefContent : function(){
-            var items = this.scrollContent.find('.sci').length;
-            if( items == 0 ){
-                this.scrollContent.append(this.defaultContent);
+            // Calculate the element position
+            val = - this.handle.position().top * ( this.element.height() - this.parent.height() ) / 
+                                    ( this.handle.parent().height() - this.handle.height() );
+
+            // Move the content by the specified scroll distance
+            if( val <= 0 && Math.abs( val ) + this.parent.height() < this.element.height() ){
+                this.element.css( dim, val + 'px' );
+            } else if( 0 < val ) {
+                this.element.css( dim, 0 + 'px' );
+            } else {
+                this.element.css( dim, - ( this.element.height() - this.parent.height() ) + 'px' );
             }
         }
     };
@@ -193,7 +183,7 @@
             data,
             args = arguments;
 
-        this.each(function(){
+        return this.each(function(){
             // Grab the object or create if not exist
             data = $(this).data( 'scroller' );            
             if( !data ){
@@ -205,10 +195,8 @@
             // Call method if it exists
             if ( data.o[method] ) {
                 ret = data.o[ method ].apply( data.o, Array.prototype.slice.call( args, 1 ));
-            }          
+            }  
+            return typeof ret === 'undefined' ? $(this) : ret;        
         }); 
-
-        //Return 'this' OR method return value
-        return typeof ret === 'undefined' ? this : ret;
     };
 })( jQuery );

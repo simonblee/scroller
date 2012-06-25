@@ -121,76 +121,43 @@
 				difX = event.pageX - this.prevX,
 				difY = event.pageY - this.prevY;	
 
-			// Move the element the difference of the previos and current mouse position
+			// Move the element the difference of the previous and current mouse position
 			if( this.prevX !== null ){
 				if( this.moveVertical ){
-					this.moveElement( 'top', pos.top + difY, event );
+					this.moveElement( 'top', pos.top + difY, event, difY );
 				}
 
 				if( this.moveHorizontal ){
-					this.moveElement( 'left', pos.left + difX, event );
+					this.moveElement( 'left', pos.left + difX, event, difX );
 				}
 			}
 
 			// Set the previous position
 			this.prevX = event.pageX;
 			this.prevY = event.pageY;
-
-			// Call the callback - set element as 'this'
-			this.options.onMove.call( this.element );
 		},
 
 		// Move an element along a particular dimension. This method can be called
 		// externally to move the draggable element. When calling externally, leave
-		// event 'undefined'
-		moveElement: function ( dim, val, event ) {
+		// event 'undefined', 'val' must be relative to the parent (not just a delta).
+		moveElement: function ( dim, val, event, dif ) {
+			var move = ( 0 <= val && val <= this.getMaxBounds( dim ) );
+
+			// If we have an event (must be mouse move) check if
+			// mouse is out of bounds
 			if( typeof event !== 'undefined' ){
-				var canMove = this.canMove( dim, val, event );
+				move = this.mouseInClickBounds( dim, event );
 			}
 
-			//Set position depending on bounds
-			if( canMove === true ) {
-				this.element.css( dim, val + 'px' );
-			} else if( canMove === -1 ) {
-				this.element.css( dim, '0px' );
-			} else if( canMove === 1 ) {
-				this.element.css( dim, this.getMaxBounds( dim ) + 'px' );
+			//Set position
+			if( move === false || typeof move === 'number' ) {
+				// If 'move' is -1 or val < 0, must be at lower bound
+				val = ( move === -1 || val < 0 ) ? 0 : this.getMaxBounds( dim );
 			}
-		},
+			this.element.css( dim, val + 'px' );
 
-		// Returns true if 'val' is in the bounds of the given dimension 'dim'
-		// (left or top). If out of bounds, return '-1' for top or left bound and 
-		// returns '1' for bottom and right bound. If the mouse is not in
-		// bounds for the given dimension.
-
-		// NOTE the 'mouseleave' event is not used to determine if the mouse
-		// is out of one dimension as it only fires once allowing only a single
-		// dimension to be checked. 'mousemove' allows continuous checking
-		canMove: function ( dim, val, event ) {
-			var ret = false;
-
-			if( this.options.bound ){
-				// If mouse not in bounds, move to edge along dimension
-				// or if at edge, return false to do nothing
-				if( !this.mouseInClickBounds( dim, event ) ){
-					if( val < 0 ){
-						ret = -1;
-					} else {
-						ret = 1;
-					}
-
-					// Check if the element is already bound
-					if( this.atBound[ dim ] ){
-						return false;
-					}
-					this.atBound[ dim ] = true;
-					return ret;
-				}
-			} 
-
-			// If here can move, even if element is bounded
-			this.atBound[ dim ] = false;
-			return true;
+			// Call the callback - set element as 'this', pass in direction
+			this.options.onMove.call( this.element, dif );
 		},
 
 		// Returns true if the mouse is in the bound of both the parent
@@ -206,8 +173,18 @@
 				clickDim = dim === 'top' ? this.clickY : this.clickX;
 				eventDim = dim === 'top' ? event.pageY : event.pageX;
 
-			return ( os[dim] + clickDim ) <= eventDim 
-					&& eventDim <= ( os[dim] + this.getMaxBounds( dim ) + clickDim );
+			// If element not bound, mouse always in bounds
+			if( this.options.bound ){
+				if( ( os[dim] + clickDim ) <= eventDim && eventDim <= ( os[dim] + this.getMaxBounds( dim ) + clickDim ) ){
+					return true;
+				} else if( eventDim < ( os[dim] + clickDim ) ){
+					return -1;
+				} else {
+					return 1;
+				}
+			} else {
+				return true;
+			}
 		},
 
 		// Calculate the max bounds of the element
@@ -217,11 +194,6 @@
 			} else {
 				return this.element.parent().outerWidth() - this.element.outerWidth();
 			}
-		},
-
-		// Move the element to a set position. Will not exceed bounds.
-		moveTo: function ( position ) {
-
 		}
 	};
 	
@@ -243,10 +215,8 @@
 			// Call method if it exists
 			if ( data.o[method] ) {
 				ret = data.o[ method ].apply( data.o, Array.prototype.slice.call( args, 1 ));
-			}          
-		}); 
-
-		//Return 'this' OR method return value
-		return typeof ret === 'undefined' ? this : ret;
+			}
+			return typeof ret === 'undefined' ? $(this) : ret;
+		});
 	};
 })( jQuery );
