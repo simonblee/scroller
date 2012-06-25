@@ -1,11 +1,49 @@
+/* Drag test */
 #parent{
-	width: 500px;
-	height: 500px;
+	width: 200px;
+	height: 200px;
 	background-color: red;
+	padding:10px;
 }
 
 #child{
 	width: 20px;
 	height: 20px;
 	background-color: white;
+}
+
+/* Drag test */
+.scroll-content, .scroller{
+	float:left;
+}
+
+.scroll-content{
+	width:300px;
+}
+
+.scroller-up-down{
+	width: 10px;
+	height: 10px;
+	background-color: black;
+	cursor: pointer;
+}
+
+.scroll-up{
+
+}
+
+.scroll-down{
+
+}
+
+.scroller-handle-wrap{
+	width: 10px;
+	height: auto;
+	padding: 2px;
+}
+
+.scroll-handle{
+	background-color: black;
+	width:auto;
+	height: 20px;
 }

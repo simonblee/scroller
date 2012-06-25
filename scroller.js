@@ -31,20 +31,22 @@
             var self = this;
 
             // Wrap the element and add scroller template
-            this.element.wrap('<div class="scroller" />');
+            this.element.wrap('<div class="scrollable" />');
             this.element.addClass('scroll-content');
 
             //Add in the required elements
             this.element.parent().append(
                 '<div class="scroller">'+
-                    '<div class="scroll-up"></div>'+
-                    '<div class="scroll-handle-wrap" style="height: 302px; padding-top: 0px;">'+
-                        '<div class="scroll-handle">'+
+                    '<div class="scroller-up scroller-up-down"></div>'+
+                    '<div class="scroller-handle-wrap">'+
+                        '<div class="scroller-handle"></div>'+
                     '</div>'+
-                    '<div class="scroll-down"></div>'+
-                    '</div>'+
+                    '<div class="scroller-down scroller-up-down"></div>'+
                 '</div>'
             );
+
+            // Size the scroller
+            
 
             // Make the handle draggable
             this.element.find('.scroll-handle').drag({
@@ -201,10 +203,11 @@
             if( !data ){
                 data = $(this).data( 'scroller', { 
                     o : new Scroller( method ) 
-                });
+                }).data( 'scroller' );
 
                 //Set the jQuery object
                 data.o.element = $(this);
+                data.o.init();
             }
 
             // Call method if it exists
