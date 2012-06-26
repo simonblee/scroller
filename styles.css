@@ -49,9 +49,9 @@
 	height: auto;
 	background-color: #FFF;
 	border-radius: 10px;
-    -moz-box-shadow: inset 5em 1em #444;
-	-webkit-box-shadow: inset 5em 1em #444;
-    box-shadow: inset 5em 1em #444;
+    -moz-box-shadow: 0 0 3px 3px #DDD inset;
+	-webkit-box-shadow: 0 0 3px 3px #DDD inset;
+    box-shadow: 0 0 3px 3px #DDD inset;
 }
 
 .vertical .scroller-handle-wrap, .vertical .scroller-up-down{

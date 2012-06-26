@@ -52,7 +52,7 @@
             this.element.addClass('scroll-content').css( 'position', 'relative'
             ).css( this.dim, '0px'
             ).wrap( '<div class="scrollable" />' 
-            ).parent().append(
+            ).parent().append(                
                 '<div class="scroller">'+
                     '<div class="scroller-up scroller-up-down" direction="-1"></div>'+
                     '<div class="scroller-handle-wrap">'+
@@ -60,7 +60,7 @@
                     '</div>'+
                     '<div class="scroller-down scroller-up-down" direction="1"></div>'+
                 '</div>'
-            ).css( 'position', 'relative' 
+            // ).css( 'position', 'relative' 
             ).addClass( this.options.orientation );
 
             // Create quick reference elements
@@ -163,7 +163,7 @@
         // Scroll the content
         scrollContent : function(){
             // Calculate the element position
-            var val = - this.handle.position()[this.dim] * ( this.element[this.func[0]]() - this.parent[this.func[0]]() ) / 
+            var val = - this.handle.position()[this.dim] * ( this.element[this.func[1]](true) - this.parent[this.func[0]]() ) / 
                 ( this.handle.parent()[this.func[0]]() - this.handle[this.func[0]]() );
 
             // Move the content by the specified scroll distance
@@ -172,7 +172,7 @@
             } else if( 0 < val ) {
                 this.element.css( this.dim, '0px' );
             } else {
-                this.element.css( this.dim, - ( this.element[this.func[0]]() - this.parent[this.func[0]]() ) + 'px' );
+                this.element.css( this.dim, - ( this.element[this.func[1]](true) - this.parent[this.func[0]]() ) + 'px' );
             }
         }
     };
