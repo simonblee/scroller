@@ -1,8 +1,7 @@
 /**
  * Makes an element draggable within it's parent. 
  * 
- * Requires:
- *      - jquery 1.7 or higher
+ * @require jquery 1.7
  */
 
 (function( $ ){
@@ -14,8 +13,8 @@
 		this.prevY = null;
 		this.clickX = 0;
 		this.clickY = 0;
-		this.moveHorizontal = null;
-		this.moveVertical = null;
+		this.moveHorizontal = true;
+		this.moveVertical = true;
 		this.atBound = {
 			left: false,
 			top: false
@@ -41,11 +40,11 @@
 
 		init : function () {
 			// Set to absolute positioning and parent to relative
-			this.element.css(
-				'position', 'absolute'
-			).parent().css(
-				'position', 'relative'
-			);
+			this.element.css( 'position', 'absolute').parent().css('position', 'relative');
+
+			//Set the size function to call from jQuery
+            this.func = this.options.orientation === 'vertical' ? ['height', 'outerHeight'] : ['width', 'outerWidth'];
+            this.dim = this.options.orientation === 'vertical' ? 'top' : 'left';
 
 			// Bind events
 			this.bindEvents();
@@ -65,15 +64,13 @@
 			} else if ( direction === 'both' ) {
 				this.moveHorizontal = false;
 				this.moveVertical = false;
-			} else if ( direction === 'none' ) {
-				this.moveHorizontal = true;
-				this.moveVertical = true;
 			}
 		},
 
 		// Disable by removing events
 		disable: function () {
-			this.element.off( 'mousemove.draggable', 'mousedown.draggable', 'mouseup.draggable' );
+			this.element.off( 'mousedown.draggable' );
+			$(document).trigger( 'mouseup.draggable' );
 		},
 
 		// Re-bind the events to enable
@@ -106,7 +103,7 @@
 				});
 
 				// On mouse up, STOP moving the element
-				$(document).one( 'mouseup.draggable', function () {
+				$(document).on( 'mouseup.draggable', function () {
 					self.move = false;
 				});
 
@@ -124,11 +121,11 @@
 			// Move the element the difference of the previous and current mouse position
 			if( this.prevX !== null ){
 				if( this.moveVertical ){
-					this.moveElement( 'top', pos.top + difY, event, difY );
+					this.moveElement( 'top', pos.top + difY, event );
 				}
 
 				if( this.moveHorizontal ){
-					this.moveElement( 'left', pos.left + difX, event, difX );
+					this.moveElement( 'left', pos.left + difX, event );
 				}
 			}
 
@@ -139,8 +136,8 @@
 
 		// Move an element along a particular dimension. This method can be called
 		// externally to move the draggable element. When calling externally, leave
-		// event 'undefined', 'val' must be relative to the parent (not just a delta).
-		moveElement: function ( dim, val, event, dif ) {
+		// 'event' undefined.
+		moveElement: function ( dim, val, event ) {
 			var move = ( 0 <= val && val <= this.getMaxBounds( dim ) );
 
 			// If we have an event (must be mouse move) check if
@@ -150,14 +147,17 @@
 			}
 
 			//Set position
-			if( move === false || typeof move === 'number' ) {
+			if( typeof move === 'number' ) {
 				// If 'move' is -1 or val < 0, must be at lower bound
 				val = ( move === -1 || val < 0 ) ? 0 : this.getMaxBounds( dim );
+			} else if( move == false ){
+				// Set to one of the bounds
+				val = ( val < 0 ) ? 0 : this.getMaxBounds( dim );
 			}
 			this.element.css( dim, val + 'px' );
 
 			// Call the callback - set element as 'this', pass in direction
-			this.options.onMove.call( this.element, dif );
+			this.options.onMove.call( this.element );
 		},
 
 		// Returns true if the mouse is in the bound of both the parent
@@ -190,9 +190,9 @@
 		// Calculate the max bounds of the element
 		getMaxBounds: function ( dim ) {
 			if( dim === 'top' ){
-				return this.element.parent().outerHeight() - this.element.outerHeight();
+				return this.element.parent().outerHeight() - this.element.outerHeight(true);
 			} else {
-				return this.element.parent().outerWidth() - this.element.outerWidth();
+				return this.element.parent().outerWidth() - this.element.outerWidth(true);
 			}
 		}
 	};

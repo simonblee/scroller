@@ -1,58 +1,103 @@
 /* Drag test */
-#parent{
+.draggable{
 	width: 200px;
 	height: 200px;
 	background-color: red;
-	padding:10px;
+	padding: 10px;
+	margin: 20px;
 }
 
-#child{
+.element{
 	width: 20px;
 	height: 20px;
 	background-color: white;
 }
 
-/* Drag test */
-.scrollable{
-	height:400px;
+/* All scroller content */
+
+
+/* Vertically Oriented Scroller */
+.vertical .scrollable{
+	padding: 10px 0 10px 10px;
+}
+
+#vertical-scroller{
+	overflow:hidden;
+	float:none;
+}
+.vertical.scrollable{
+	height: 400px;
 	overflow:hidden;
 	float: left;
 }
 
-.scroll-content, .scroller{
+.vertical .scroll-content, .vertical .scroller{
 	float:left;
 }
 
-.scroll-content{
+.vertical .scroll-content{
 	width:300px;
 }
 
-.scroller-up-down{
+.vertical .scroller-up-down{
+	height: 10px;
+	background-color: black;
+	cursor: pointer;
+}
+
+.vertical .scroller-handle-wrap{
+	height: auto;
+	background-color: #FFF;
+	border-radius: 10px;
+    -moz-box-shadow: inset 5em 1em #444;
+	-webkit-box-shadow: inset 5em 1em #444;
+    box-shadow: inset 5em 1em #444;
+}
+
+.vertical .scroller-handle-wrap, .vertical .scroller-up-down{
+	width: 14px;
+}
+
+.vertical .scroller-handle{
+	border-radius: 5px;
+	margin: 4px;
+	width: 6px;
+	background-color:#CCC;
+}
+
+/* Horizontally Oriented Scroller */
+.horizontal .scrollable{
+	border: solid black 1px;
+}
+
+.horizontal.scrollable{
+	width: 400px;
+	overflow:hidden;
+}
+
+.horizontal .scroll-content{
+	width:2000px;
+}
+
+.horizontal .scroller-up-down{
 	width: 10px;
 	height: 10px;
 	background-color: black;
 	cursor: pointer;
 }
 
-.scroller-up{
-
+.horizontal .scroller-up-down, .horizontal .scroller-handle-wrap{
+	float: left;
 }
 
-.scroller-down{
-
+.horizontal .scroller-handle-wrap{
+	height: 10px;
+	width: auto;
 }
 
-.scroller-handle-wrap{
-	width: 10px;
-	height: auto;
-}
-
-.scroller-handle{
+.horizontal .scroller-handle{
 	background-color: black;
-	width: 100%;
+	height: 100%;
 }
 
-/* Smooth CSS3 transitions for scroller */
-.smooth .scroller-handle{
-	
-}
+/*  */

@@ -1,17 +1,14 @@
 /**
  * Content Scroller. Waps a content area in a scroller, allowing the 
- * content to be scrolled and the scroll bar to be styled.
+ * content to be scrolled and the scroll bar to be styled. Reason for 
+ * making: to keep the file size very small.
  *
  * Author: Simon Blee (The Gift Mansion) (simblee@gmail.com, simon@thegiftmansion.com.au)
- * Date: See latest commit
- * Requires:
- *      - drag.js
- *      - jquery.mousewheel.js (from Remy Sharp)
- *      - jquery.mousehold.js (from Brandon Aaron)
- * Example: $("div").scroller({
- *              showHandles: true,
- *              
- *          });
+ *
+ * @require jquery 1.7
+ * @require draggable.js
+ * @require jquery.mousewheel.js (from Remy Sharp)
+ * @require jquery.mousehold.js (from Brandon Aaron)
  */
 
 (function( $ ){
@@ -22,15 +19,15 @@
         this.upBtn = null;
         this.downBtn = null;
         this.handle = null;
-        this.direction = null;
+        this.func = null;
+        this.dim = null;
         this.options = {
-            minHandleHeight: 10,
+            minHandleSize: 10,
             orientation: 'vertical',
-            scrollDistance: 60, // Distance in pixels of each scroll
-            scrollUpDirection: 1,
-            scrollDownDirection: -1,
-            mouseholdDeadTime: 1000, // Time to continue holding
-            mouseholdTO: 50 // Mousehold timeout (ms)
+            scrollDistance: 10, // Distance in pixels of each scroll
+            showButtons: true,
+            mouseholdDeadtime: 500, // Time to continue holding
+            mouseholdTimeout: 10 // Mousehold timeout (ms)
         };
 
         // Init the scroller
@@ -47,15 +44,15 @@
             // Extend the input options
             $.extend( this.options, o );
 
-            // Wrap the element and add scroller template
-            this.element.wrap('<div class="scrollable" />');
-            this.element.addClass('scroll-content').css({
-                'position': 'relative',
-                'top': '0px'
-            });
+            //Set the size function to call from jQuery
+            this.func = this.options.orientation === 'vertical' ? ['height', 'outerHeight'] : ['width', 'outerWidth'];
+            this.dim = this.options.orientation === 'vertical' ? 'top' : 'left';
 
-            //Add in the required elements
-            this.element.parent().append(
+            // Wrap the element and add scroller template
+            this.element.addClass('scroll-content').css( 'position', 'relative'
+            ).css( this.dim, '0px'
+            ).wrap( '<div class="scrollable" />' 
+            ).parent().append(
                 '<div class="scroller">'+
                     '<div class="scroller-up scroller-up-down" direction="-1"></div>'+
                     '<div class="scroller-handle-wrap">'+
@@ -63,9 +60,8 @@
                     '</div>'+
                     '<div class="scroller-down scroller-up-down" direction="1"></div>'+
                 '</div>'
-            ).css(
-                'position', 'relative'
-            );
+            ).css( 'position', 'relative' 
+            ).addClass( this.options.orientation );
 
             // Create quick reference elements
             this.parent = this.element.parent();
@@ -73,106 +69,110 @@
             this.downBtn = this.parent.find(".scroller-down");
             this.handle = this.parent.find(".scroller-handle");
 
+            // Show scroll buttons?
+            if( !this.options.showButtons ){
+                this.upBtn.hide();
+                this.downBtn.hide();
+            }
+
             // Make the handle draggable
             this.handle.draggable({
                 bound: true,
-                lock: 'horizontal',
-                onMove: function ( direction ) {
-                    if ( self.element.height() > self.parent.height() ) {
-                        self._scrollContent();
+                lock: this.options.orientation === 'vertical' ? 'horizontal' : 'vertical',
+                onMove: function () {
+                    if ( self.element[self.func[0]]() > self.parent[self.func[0]]() ) {
+                        self.scrollContent();
                     }
                 }
             });
 
-            //Adjust height of scroll-bar-wrap so handle is always visible
+            //Adjust size of scroll-bar-wrap so handle is always visible
             this.sizeScrollerHandle();
-            this._bindEvents();
+            this.bindEvents();
         },
 
-        // Calculate the height of the scroller handle based on the amount
-        // height difference between the scroller container and the content 
-        // div.
+        // Calculate the size of the scroller handle
         sizeScrollerHandle: function () {
-            var handleHeight;
+            var handleWrapSize,
+                handleSize = 0;
 
-            // Calculate the handle height
-            if( this.element.height() < this.parent.height() ){
-                handleHeight = 0;
-            } else{
-                handleHeight = this.parent.height() * ( this.parent.height() / this.element.height() )
-                                - ( 2 * this.upBtn.outerHeight() );
-                //Check the handle is not too small
-                if( handleHeight < this.minHandleHeight ){
-                    handleHeight = this.minHandleHeight;
-                }
+            // Calculate the handle size
+            if( this.parent[this.func[0]]() < this.element[this.func[0]]() ){
+                handleSize = this.parent[this.func[0]]() * ( this.parent[this.func[0]]() / this.element[this.func[0]]() ); 
+                handleSize = this.upBtn.is(':visible') ? handleSize - ( this.downBtn[this.func[1]]() + this.upBtn[this.func[1]]() ) : handleSize;
+                handleSize = handleSize < this.minHandleSize ? this.minHandleSize : handleSize;
             }
 
-            //Set the handle height and wrap height
-            this.handle.height( 
-                handleHeight 
-            ).parent().height(
-                this.parent.height() - ( 2 * this.upBtn.outerHeight() )
-            );
+            //Set the handle size and wrap size
+            this.handle[this.func[0]]( handleSize );
+            handleWrapSize = this.upBtn.is(':visible') ? this.parent[this.func[0]]() - ( 2 * this.upBtn[this.func[1]]() ) : this.parent[this.func[0]]();
+            this.handle.parent()[ this.func[0] ]( handleWrapSize );
         },
 
-        _reflowContent : function () {
+        reflowContent : function () {
          
         },
 
         // Bind all the events to move the scroller
-        _bindEvents : function () {
+        bindEvents : function () {
             var self = this;
 
             // Move the scroller with the mousewheel using the event helper
             this.parent.on('mousewheel.scroller', function ( event, delta, deltaX, deltaY ) {
-                delta = deltaY ? deltaY : deltaX;
-                self._scrollHandle( -1 * delta );
+                // delta = deltaY;
+                // if( self.options.orientation === 'horizontal' ){
+                //     delta = deltaX ? deltaX : deltaY;
+                // }
+                delta = self.options.orientation === 'vertical' ? deltaY : -1 * deltaX;
+                self.scrollHandle( -1 * delta );
                 event.preventDefault();
             });
 
-            // Adjust the default moushold timeout and deadtime TODO: create new mousehold plugin
+            // Move the scroller with up/down clicks and mousehold
+            this.parent.find('.scroller-up-down').on('mousedown.scroller', function () {
+                self.scrollHandle( parseInt( $(this).attr('direction'), 10 ) );
+            }).mousehold( self.options.mouseholdTimeout, self.options.mouseholdDeadtime, function () {
+                self.scrollHandle( parseInt( $(this).attr('direction'), 10 ) );
+            });
 
+            // Clicking in the handle wrap should move handle to that location
+            this.handle.parent().on( 'click.scroller', function ( event ) {
+                var pos,
+                    page = self.dim === 'top' ? event.pageY : event.pageX,
+                    clickPos = page - self.handle.parent().offset()[ self.dim ],
+                    handlePos = self.handle.position()[self.dim];
 
-            // Move the scroller with up/down clicks and mouseholds
-            this.parent.find('.scroller-up-down').on('mousedown.scroller mousehold.scroller', function ( event ) {
-                self._scrollHandle( parseInt( $(this).attr('direction') ) );
+                // Make sure not over handle
+                if( clickPos < handlePos || ( handlePos + self.handle[ self.func[0] ]() ) < clickPos ){
+                    pos = clickPos < handlePos ? clickPos : clickPos - self.handle[ self.func[0] ]();
+                    self.handle.draggable( "moveElement", self.dim, pos );
+                }
             });
         },
 
         // Move the scroller handle (events will need to call this)
-        _scrollHandle : function( direction ){
-            var val,
-                weight,
-                dim = this.options.orientation === 'vertical' ? 'top' : 'left';
-
-            // Calculate the handle scroll value (must correspond to a scroll of
-            // this.options.scrollDistance pixels in the content).
-            weight = this.options.scrollDistance * ( this.handle.parent().height() - this.handle.height() ) / 
-                ( this.element.height() - this.parent.height() )
-            val = this.handle.position()[ dim ] + direction * weight;
-
-            //Save the direction for the content scroll
-            this.direction = direction;
+        scrollHandle : function( direction ){
+            // Calculate the handle scroll value
+            var weight = this.options.scrollDistance * ( this.handle.parent()[this.func[1]]() - this.handle[this.func[0]]() ) / 
+                ( this.element[this.func[0]]() - this.parent[this.func[0]]() );
 
             // Move the scroll handle
-            this.handle.draggable( "moveElement", dim, val );
+            this.handle.draggable( "moveElement", this.dim, this.handle.position()[ this.dim ] + direction * weight );
         },
 
         // Scroll the content
-        _scrollContent : function( val ){
-            var dim = this.options.orientation === 'vertical' ? 'top' : 'left';
-
+        scrollContent : function(){
             // Calculate the element position
-            val = - this.handle.position().top * ( this.element.height() - this.parent.height() ) / 
-                                    ( this.handle.parent().height() - this.handle.height() );
+            var val = - this.handle.position()[this.dim] * ( this.element[this.func[0]]() - this.parent[this.func[0]]() ) / 
+                ( this.handle.parent()[this.func[0]]() - this.handle[this.func[0]]() );
 
             // Move the content by the specified scroll distance
-            if( val <= 0 && Math.abs( val ) + this.parent.height() < this.element.height() ){
-                this.element.css( dim, val + 'px' );
+            if( val <= 0 && Math.abs( val ) + this.parent[this.func[0]]() < this.element[this.func[0]]() ){
+                this.element.css( this.dim, val + 'px' );
             } else if( 0 < val ) {
-                this.element.css( dim, 0 + 'px' );
+                this.element.css( this.dim, '0px' );
             } else {
-                this.element.css( dim, - ( this.element.height() - this.parent.height() ) + 'px' );
+                this.element.css( this.dim, - ( this.element[this.func[0]]() - this.parent[this.func[0]]() ) + 'px' );
             }
         }
     };
@@ -194,9 +194,9 @@
 
             // Call method if it exists
             if ( data.o[method] ) {
-                ret = data.o[ method ].apply( data.o, Array.prototype.slice.call( args, 1 ));
+                ret = data.o[ method ].apply( data.o, Array.prototype.slice.call( args, 1 ) );
             }  
             return typeof ret === 'undefined' ? $(this) : ret;        
-        }); 
+        });
     };
 })( jQuery );

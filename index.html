@@ -5,59 +5,95 @@
 		<link href="styles.css" media="all" rel="stylesheet" type="text/css"/>
 		<script src="/common/jquery-1.7.2.js"></script>
 		<script src="/common/jquery.mousewheel.js"></script>
+		<script src="/common/jquery.mousehold.js"></script>
 		<script src="draggable.js"></script>
 		<script src="scroller.js"></script>
 		<script type="text/javascript">
 			$(function(){
-				$('#child').draggable({
-					bound: true,
-					lock: "horizontal",
-					onMove: function () {
-						$('#position').text( 'Top: ' + this.position().top + 'Left: ' + this.position().left );
-					}
+				// Draggable object example - move vertical only
+				$('.element').each(function(){
+					$(this).draggable({
+						bound: true,
+						lock: $(this).parent().attr("fix"),
+						onMove: function () {
+							this.siblings('.position').text( 'Top: ' + this.position().top + 'Left: ' + this.position().left );
+						}
+					});
 				});
 
-				scroller = $('#scroll-test').scroller();
+				$('.content').each(function() {
+					$(this).scroller({
+						orientation: $(this).attr("fix"),
+						showButtons: false,
+						scrollDistance: 5
+					});
+				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="parent">
-			<div id="child"></div>
-			<div id="position"></div>
+		<div>
+			<h1>Vertical Draggable Element</h1>
+			<div class="draggable" fix="horizontal">
+				<div class="element"></div>
+				<div class="position"></div>
+			</div>
+			<h1>Horizontal Draggable Element</h1>
+			<div class="draggable" fix="vertical">
+				<div class="element"></div>
+				<div class="position"></div>
+			</div>	
+			<h1>Free Draggable Element</h1>	
+			<div class="draggable" fix="none">
+				<div class="element"></div>
+				<div class="position"></div>
+			</div>
 		</div>
-		<div id="scroll-test">
-			<p>
-				Content to cause the scroll-content area to overflow and create a nice scroller :).
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-				Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
-			</p>
+		<div class="scrollers">
+			<div id="vertical-scroller">
+				<h1>Vertical Scroller</h1>
+				<div class="content" fix="vertical">
+					<p>
+						Content to cause the scroll-content area to overflow and create a nice scroller :).
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+					</p>
+				</div>
+			</div>
+			<div id="horizontal-scroller">
+				<h1>Horizontal Scroller</h1>
+				<div class="content" fix="horizontal">
+					<p>
+						Content to cause the scroll-content area to overflow and create a nice scroller :).
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+						Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg. Jsadf asdf asdofj lerjkh lakdjfg alskjfhaldsfkjg alskjdfgh uhfg siodfhg sodfg sdfg.
+					</p>
+				</div>
+			</div>
 		</div>
 	</body>
 </html>
