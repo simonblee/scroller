@@ -169,8 +169,8 @@
 		// the element can be moved only when the mouse gets back to the same 
 		// position it was clicked on, not before
 		mouseInClickBounds: function ( dim, event ) {
-			var os = this.element.parent().offset();
-				clickDim = dim === 'top' ? this.clickY : this.clickX;
+			var os = this.element.parent().offset(),
+				clickDim = dim === 'top' ? this.clickY : this.clickX,
 				eventDim = dim === 'top' ? event.pageY : event.pageX;
 
 			// If element not bound, mouse always in bounds
@@ -190,9 +190,9 @@
 		// Calculate the max bounds of the element
 		getMaxBounds: function ( dim ) {
 			if( dim === 'top' ){
-				return this.element.parent().outerHeight() - this.element.outerHeight(true);
+				return this.element.parent().outerHeight() - this.element.outerHeight( true );
 			} else {
-				return this.element.parent().outerWidth() - this.element.outerWidth(true);
+				return this.element.parent().outerWidth() - this.element.outerWidth( true );
 			}
 		}
 	};

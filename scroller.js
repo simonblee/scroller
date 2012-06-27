@@ -80,7 +80,7 @@
                 bound: true,
                 lock: this.options.orientation === 'vertical' ? 'horizontal' : 'vertical',
                 onMove: function () {
-                    if ( self.element[self.func[0]]() > self.parent[self.func[0]]() ) {
+                    if ( self.element[ self.func[0] ]() > self.parent[ self.func[0] ]() ) {
                         self.scrollContent();
                     }
                 }
@@ -97,16 +97,16 @@
                 handleSize = 0;
 
             // Calculate the handle size
-            if( this.parent[this.func[0]]() < this.element[this.func[0]]() ){
-                handleSize = this.parent[this.func[0]]() * ( this.parent[this.func[0]]() / this.element[this.func[0]]() ); 
-                handleSize = this.upBtn.is(':visible') ? handleSize - ( this.downBtn[this.func[1]]() + this.upBtn[this.func[1]]() ) : handleSize;
+            if( this.parent[ this.func[0] ]() < this.element[ this.func[0] ]() ){
+                handleSize = this.parent[ this.func[0] ]() * ( this.parent[ this.func[0] ]() / this.element[ this.func[0] ]() ); 
+                handleSize = this.upBtn.is(':visible') ? handleSize - ( this.downBtn[ this.func[1] ]() + this.upBtn[ this.func[1] ]() ) : handleSize;
                 handleSize = handleSize < this.minHandleSize ? this.minHandleSize : handleSize;
             }
 
             //Set the handle size and wrap size
-            this.handle[this.func[0]]( handleSize );
-            handleWrapSize = this.upBtn.is(':visible') ? this.parent[this.func[0]]() - ( 2 * this.upBtn[this.func[1]]() ) : this.parent[this.func[0]]();
-            this.handle.parent()[ this.func[0] ]( handleWrapSize );
+            this.handle[ this.func[0] ]( handleSize );
+            handleWrapSize = this.upBtn.is(':visible') ? this.parent[ this.func[0] ]() - ( 2 * this.upBtn[ this.func[1] ]() ) : this.parent[ this.func[0] ]();
+            this.handle.parent()[  this.func[0]  ]( handleWrapSize );
         },
 
         reflowContent : function () {
@@ -153,8 +153,8 @@
         // Move the scroller handle (events will need to call this)
         scrollHandle : function( direction ){
             // Calculate the handle scroll value
-            var weight = this.options.scrollDistance * ( this.handle.parent()[this.func[1]]() - this.handle[this.func[0]]() ) / 
-                ( this.element[this.func[0]]() - this.parent[this.func[0]]() );
+            var weight = this.options.scrollDistance * ( this.handle.parent()[ this.func[1] ]() - this.handle[ this.func[0] ]() ) / 
+                ( this.element[ this.func[0] ]() - this.parent[ this.func[0] ]() );
 
             // Move the scroll handle
             this.handle.draggable( "moveElement", this.dim, this.handle.position()[ this.dim ] + direction * weight );
@@ -163,16 +163,16 @@
         // Scroll the content
         scrollContent : function(){
             // Calculate the element position
-            var val = - this.handle.position()[this.dim] * ( this.element[this.func[1]](true) - this.parent[this.func[0]]() ) / 
-                ( this.handle.parent()[this.func[0]]() - this.handle[this.func[0]]() );
+            var val = - this.handle.position()[this.dim] * ( this.element[ this.func[1] ](true) - this.parent[ this.func[0] ]() ) / 
+                ( this.handle.parent()[ this.func[0] ]() - this.handle[ this.func[0] ]() );
 
             // Move the content by the specified scroll distance
-            if( val <= 0 && Math.abs( val ) + this.parent[this.func[0]]() < this.element[this.func[0]]() ){
+            if( val <= 0 && Math.abs( val ) + this.parent[ this.func[0] ]() < this.element[ this.func[0] ]() ){
                 this.element.css( this.dim, val + 'px' );
             } else if( 0 < val ) {
                 this.element.css( this.dim, '0px' );
             } else {
-                this.element.css( this.dim, - ( this.element[this.func[1]](true) - this.parent[this.func[0]]() ) + 'px' );
+                this.element.css( this.dim, - ( this.element[ this.func[1] ](true) - this.parent[ this.func[0] ]() ) + 'px' );
             }
         }
     };
