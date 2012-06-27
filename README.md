@@ -1,5 +1,5 @@
-scroller
-========
+jQuery Scroller
+===============
 
 jQuery content scroller plugin for overflowing elements. Can scroll in both the vertical and horizontal direction. 
 Completely stylable with CSS and very lightweight.
