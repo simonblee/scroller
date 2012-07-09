@@ -21,11 +21,13 @@
         this.handle = null;
         this.func = null;
         this.dim = null;
+        this.enterTimeout = null;
         this.options = {
             minHandleSize: 10,
             orientation: 'vertical',
             scrollDistance: 10, // Distance in pixels of each scroll
-            showButtons: true,
+            showButtons: false,
+            enterTimeoutDuration: 2000, // 2 seconds
             mouseholdDeadtime: 500, // Time to continue holding
             mouseholdTimeout: 10 // Mousehold timeout (ms)
         };
@@ -109,8 +111,25 @@
             this.handle.parent()[  this.func[0]  ]( handleWrapSize );
         },
 
+        // Adjust scroller to match content size
         reflowContent : function () {
-         
+            var newScroll,
+                currentScroll = parseFloat( this.element.css( this.dim ).replace('px', '') );
+
+            // First resize the scroller
+            this.sizeScrollerHandle();
+
+            if( this.element[ this.func[0] ]() < this.parent[ this.func[0] ]() ){
+                newScroll = 0;
+            } else if( currentScroll + this.element[ this.func[0] ]() < this.parent[ this.func[0] ]() ){
+                newScroll = this.parent[ this.func[0] ]() - this.element[ this.func[0] ]();
+            } else {
+                newScroll = currentScroll *
+                            ( this.handle.parent()[ this.func[0] ]() - this.handle[ this.func[0] ]() ) /
+                            ( this.element[ this.func[0] ]() - this.parent[ this.func[0] ]() );
+            }  
+
+            this.element.css( this.dim, newScroll + 'px' );          
         },
 
         // Bind all the events to move the scroller
@@ -119,13 +138,23 @@
 
             // Move the scroller with the mousewheel using the event helper
             this.parent.on('mousewheel.scroller', function ( event, delta, deltaX, deltaY ) {
-                // delta = deltaY;
-                // if( self.options.orientation === 'horizontal' ){
-                //     delta = deltaX ? deltaX : deltaY;
-                // }
-                delta = self.options.orientation === 'vertical' ? deltaY : -1 * deltaX;
+                delta = self.options.orientation === 'vertical' ? deltaY : deltaX;                
                 self.scrollHandle( -1 * delta );
                 event.preventDefault();
+                clearTimeout( self.enterTimeout );
+                setEnterTimeout();
+            });
+
+            // When clicking, ensure the mouseenter class is set for the duration
+            this.handle.on( 'mousedown.scroller', function ( event ) {
+                clearTimeout( self.enterTimeout );
+                self.handle.addClass('mouseenter');
+            });
+
+            $(document).on('mouseup.scroller', function () {
+                if( self.handle.hasClass('mouseenter') ){
+                    setEnterTimeout();
+                }
             });
 
             // Move the scroller with up/down clicks and mousehold
@@ -148,16 +177,27 @@
                     self.handle.draggable( "moveElement", self.dim, pos );
                 }
             });
+
+            // Moving mouse into scroller adds 'mouseenter' class
+            this.parent.on('mouseenter.scroller', setEnterTimeout );
+
+            function setEnterTimeout() {
+                self.handle.addClass('mouseenter');
+                self.enterTimeout = setTimeout( function () {
+                    self.handle.removeClass('mouseenter');
+                }, self.options.enterTimeoutDuration );
+            }
         },
 
         // Move the scroller handle (events will need to call this)
         scrollHandle : function( direction ){
             // Calculate the handle scroll value
             var weight = this.options.scrollDistance * ( this.handle.parent()[ this.func[1] ]() - this.handle[ this.func[0] ]() ) / 
-                ( this.element[ this.func[0] ]() - this.parent[ this.func[0] ]() );
-
+                ( this.element[ this.func[0] ]() - this.parent[ this.func[0] ]() ),
+                diff = direction > 0 ? Math.ceil( direction * weight ) : Math.floor( direction * weight );
+            
             // Move the scroll handle
-            this.handle.draggable( "moveElement", this.dim, this.handle.position()[ this.dim ] + direction * weight );
+            this.handle.draggable( "moveElement", this.dim, this.handle.position()[ this.dim ] + diff );
         },
 
         // Scroll the content

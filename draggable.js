@@ -40,7 +40,7 @@
 
 		init : function () {
 			// Set to absolute positioning and parent to relative
-			this.element.css( 'position', 'absolute').parent().css('position', 'relative');
+			this.element.css( 'position', 'absolute');
 
 			//Set the size function to call from jQuery
             this.func = this.options.orientation === 'vertical' ? ['height', 'outerHeight'] : ['width', 'outerWidth'];
@@ -85,6 +85,7 @@
 			this.element.on( 'mousedown.draggable', function ( event ) {
 				// Set movable
 				self.move = true;
+				$(this).addClass('drag');
 
 				// Set the position of click on the element
 				self.clickX = event.pageX - self.element.offset().left;
@@ -105,6 +106,7 @@
 				// On mouse up, STOP moving the element
 				$(document).on( 'mouseup.draggable', function () {
 					self.move = false;
+					self.element.removeClass('drag');
 				});
 
 				//Prevent default 
