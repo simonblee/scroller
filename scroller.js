@@ -160,9 +160,13 @@
             // Move the scroller with up/down clicks and mousehold
             this.parent.find('.scroller-up-down').on('mousedown.scroller', function () {
                 self.scrollHandle( parseInt( $(this).attr('direction'), 10 ) );
-            }).mousehold( self.options.mouseholdTimeout, self.options.mouseholdDeadtime, function () {
-                self.scrollHandle( parseInt( $(this).attr('direction'), 10 ) );
             });
+
+            if ( typeof $.mousehold === 'function' ){
+                this.parent.find('.scroller-up-down').mousehold( self.options.mouseholdTimeout, self.options.mouseholdDeadtime, function () {
+                    self.scrollHandle( parseInt( $(this).attr('direction'), 10 ) );
+                });
+            }
 
             // Clicking in the handle wrap should move handle to that location
             this.handle.parent().on( 'click.scroller', function ( event ) {
