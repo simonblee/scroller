@@ -102,7 +102,7 @@
             if( this.parent[ this.func[0] ]() < this.element[ this.func[0] ]() ){
                 handleSize = this.parent[ this.func[0] ]() * ( this.parent[ this.func[0] ]() / this.element[ this.func[0] ]() ); 
                 handleSize = this.upBtn.is(':visible') ? handleSize - ( this.downBtn[ this.func[1] ]() + this.upBtn[ this.func[1] ]() ) : handleSize;
-                handleSize = handleSize < this.minHandleSize ? this.minHandleSize : handleSize;
+                handleSize = handleSize < this.options.minHandleSize ? this.options.minHandleSize : handleSize;
             }
 
             //Set the handle size and wrap size
