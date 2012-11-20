@@ -13,3 +13,7 @@ Usage
 View the demo in the index.html file to see how it works for now...
 
 More will be added here soon.
+
+Examples
+--------
+We use this scroller in our google maps integrated gift finder: http://www.thegiftmansion.com.au/gift-finder.html#!view=map.
